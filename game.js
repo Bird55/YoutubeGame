@@ -6,6 +6,9 @@ var ctxMap;
 var pl;
 var ctxPl;
 
+var en;
+var ctxEn;
+
 var drawBtn;
 var clearBtn;
 
@@ -15,19 +18,27 @@ var gameHeight = 500;
 var background = new Image();
 background.src = "img/bg.png";
 
-var tiles = new Image();
-tiles.src = "img/tiles.png";
+var enemyImg = new Image();
+enemyImg.src = "img/enemy.png";
+
+var playerImg = new Image();
+playerImg.src = "img/player.png";
 
 var player;
-var enemy;
+var enemies = [];
 
-var requestAnimFrame = window.requestAnimationFrame ||
+var isPlaying;
+
+// For creating enemies
+var spawnInterval;
+var spawnTime = 24000;
+var spawnAmount = 3;
+
+var requestAnimateFrame = window.requestAnimationFrame ||
         window.webkitRequestAnimationFrame ||
         window.mozRequestAnimationFrame ||
         window.oRequestAnimationFrame ||
         window.msRequestAnimationFrame;
-
-var isPlaying;
 
 function init() {
     map = document.getElementById("map");
@@ -42,6 +53,12 @@ function init() {
     pl.width = gameWidth;
     pl.height = gameHeight;
 
+    en = document.getElementById("enemy");
+    ctxEn = en.getContext("2d");
+
+    en.width = gameWidth;
+    en.height = gameHeight;
+
     drawBtn = document.getElementById("drawBtn");
     clearBtn = document.getElementById("clearBtn");
 
@@ -49,25 +66,41 @@ function init() {
     clearBtn.addEventListener("click", clearRect, false);
 
     player = new Player();
-    enemy = new Enemy();
 
     drawBg();
-
     startLoop();
-//    draw();
+
+    document.addEventListener("keydown", checkKeyDown, false);
+    document.addEventListener("keyup", checkKeyUp, false);
+}
+
+function spawnEnemy(count) {
+    for (var i = 0; i < count; i++) {
+        enemies[i] = new Enemy();
+    }
+}
+
+function startCreatingEnemies() {
+    stopCreatingEnemies();
+    spawnInterval = setInterval(function(){spawnEnemy(spawnAmount)}, spawnTime);
+}
+
+function stopCreatingEnemies() {
+    clearInterval(spawnInterval);
 }
 
 function loop() {
     if (isPlaying) {
         draw();
         update();
-        requestAnimFrame(loop);
+        requestAnimateFrame(loop);
     }
 }
 
 function startLoop() {
     isPlaying = true;
     loop();
+    startCreatingEnemies();
 }
 
 function stopLoop() {
@@ -76,46 +109,117 @@ function stopLoop() {
 
 function draw() {
     player.draw();
-    enemy.draw();
+
+    clearCtxEnemy();
+    for (var i = 0; i < enemies.length; i++) {
+        enemies[i].draw();
+    }
+
 }
 
 function update() {
-
+    player.update();
+    for (var i = 0; i < enemies.length; i++) {
+        enemies[i].update();
+    }
 }
 
 // Objects
 function Player() {
-    this.srcX = 0;
-    this.srcY = 0;
+    this.srcX = 36;
+    this.srcY = 2;
     this.drawX = 0;
     this.drawY = 0;
-    this.width = 120;
-    this.height = 70;
+    this.width = 136;
+    this.height = 155;
+    this.scale = 0.7;
+    this.speed = 5;
 
-    this.speed = 8;
+    // For keys
+    this.isUp = false;
+    this.isDown = false;
+    this.isRight = false;
+    this.isLeft = false;
 }
 
 function Enemy() {
     this.srcX = 0;
-    this.srcY = 70;
-    this.drawX = 700;
-    this.drawY = 50;
-    this.width = 100;
-    this.height = 70;
+    this.srcY = 0;
+    this.drawX = Math.floor(Math.random() * gameWidth + gameWidth);
+    this.drawY = Math.floor(Math.random() * gameHeight);
+    this.width = 163;
+    this.height = 116;
+    this.scale = 0.4;
 
     this.speed = 5;
 }
 
-Player.prototype.draw = function () {
-    ctxMap.drawImage(tiles,
+Enemy.prototype.draw = function() {
+    ctxEn.drawImage(enemyImg,
         this.srcX, this.srcY, this.width, this.height,
-        this.drawX, this.drawY, this.width, this.height);
+        this.drawX, this.drawY, this.width * this.scale, this.height * this.scale);
 }
 
-Enemy.prototype.draw = function() {
-    ctxMap.drawImage(tiles,
+Enemy.prototype.update = function() {
+    this.drawX -= this.speed;
+    if (this.drawX + this.width * this.scale < 0) {
+        //this.drawX = Math.floor(Math.random() * gameWidth + gameWidth);
+        //this.drawY = Math.floor(Math.random() * gameHeight);
+        this.destroy();
+    }
+}
+
+Enemy.prototype.destroy = function() {
+    enemies.splice(enemies.indexOf(this), 1);
+}
+
+Player.prototype.draw = function () {
+    clearCtxPlayer();
+    ctxPl.drawImage(playerImg,
         this.srcX, this.srcY, this.width, this.height,
-        this.drawX, this.drawY, this.width, this.height);
+        this.drawX, this.drawY, this.width * this.scale, this.height * this.scale);
+}
+
+Player.prototype.update = function () {
+    this.chooseDir();
+
+    if (this.drawX < 0)
+        this.drawX = 0;
+    if (this.drawX > gameWidth - this.width * this.scale)
+        this.drawX = gameWidth - this.width * this.scale;
+    if (this.drawY < 0)
+        this.drawY = 0;
+    if (this.drawY > gameHeight - this.height * this.scale)
+        this.drawY = gameHeight - this.height * this.scale;
+
+}
+
+Player.prototype.chooseDir = function () {
+    if (this.isUp) this.drawY -= this.speed;
+    if (this.isDown) this.drawY += this.speed;
+    if (this.isLeft) this.drawX -= this.speed;
+    if (this.isRight) this.drawX += this.speed;
+}
+
+function checkKeyDown(e) {
+    var keyID = e.keyCode || e.which;
+    var keyChar = String.fromCharCode(keyID);
+
+    if (keyChar == "W") { player.isUp = true; e.preventDefault(); }
+    if (keyChar == "S") { player.isDown = true; e.preventDefault(); }
+    if (keyChar == "A") { player.isLeft = true; e.preventDefault(); }
+    if (keyChar == "D") { player.isRight = true; e.preventDefault(); }
+
+}
+
+function checkKeyUp(e) {
+    var keyID = e.keyCode || e.which;
+    var keyChar = String.fromCharCode(keyID);
+
+    if (keyChar == "W") { player.isUp = false; e.preventDefault(); }
+    if (keyChar == "S") { player.isDown = false; e.preventDefault(); }
+    if (keyChar == "A") { player.isLeft = false; e.preventDefault(); }
+    if (keyChar == "D") { player.isRight = false; e.preventDefault(); }
 }
 
 function drawRect() {
@@ -125,6 +229,14 @@ function drawRect() {
 
 function clearRect() {
     ctxMap.clearRect(0, 0, gameWidth, gameHeight);
+}
+
+function clearCtxPlayer() {
+    ctxPl.clearRect(0, 0, gameWidth, gameHeight);
+}
+
+function clearCtxEnemy() {
+    ctxEn.clearRect(0, 0, gameWidth, gameHeight);
 }
 
 function drawBg() {

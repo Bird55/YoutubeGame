@@ -1,0 +1,9 @@
+player.png (from left to right)
+1st:
+X0=30, Y0=0, widthX=172, widthY=160
+
+
+
+enemy.png (from top to bottom)
+1st:
+X0=0, Y0=0, widthX=163, widthY=116
