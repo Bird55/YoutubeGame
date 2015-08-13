@@ -9,6 +9,9 @@ var ctxPl;
 var en;
 var ctxEn;
 
+var st;
+var ctxSt;
+
 var drawBtn;
 var clearBtn;
 
@@ -44,20 +47,26 @@ function init() {
     map = document.getElementById("map");
     ctxMap = map.getContext("2d");
 
-    map.width = gameWidth;
-    map.height = gameHeight;
-
     pl = document.getElementById("player");
     ctxPl = pl.getContext("2d");
-
-    pl.width = gameWidth;
-    pl.height = gameHeight;
 
     en = document.getElementById("enemy");
     ctxEn = en.getContext("2d");
 
+    st = document.getElementById("stats");
+    ctxSt = en.getContext("2d");
+
+    map.width = gameWidth;
+    map.height = gameHeight;
+    pl.width = gameWidth;
+    pl.height = gameHeight;
     en.width = gameWidth;
     en.height = gameHeight;
+    st.width = gameWidth;
+    st.height = gameHeight;
+
+    ctxSt.fillStyle = "#3d3d3d";
+    ctxSt.font = "bold 15pt Arial";
 
     drawBtn = document.getElementById("drawBtn");
     clearBtn = document.getElementById("clearBtn");
@@ -69,6 +78,7 @@ function init() {
 
     drawBg();
     startLoop();
+    updateStats();
 
     document.addEventListener("keydown", checkKeyDown, false);
     document.addEventListener("keyup", checkKeyUp, false);
@@ -237,6 +247,12 @@ function clearCtxPlayer() {
 
 function clearCtxEnemy() {
     ctxEn.clearRect(0, 0, gameWidth, gameHeight);
+}
+
+function updateStats() {
+    ctxSt.clearRect(0, 0, gameWidth, gameHeight);
+    ctxSt.fillText("Player", 100, 100);
+    console.log(("Я тут"));
 }
 
 function drawBg() {

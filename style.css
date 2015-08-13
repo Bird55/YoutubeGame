@@ -4,19 +4,18 @@ body {
 
 #gameName {
     color: #fff;
-    font-family: Courier;
+    font-family: Courier, serif;
     font-weight: bold;
     font-size: 24px;
     text-align: center;
 }
 
-#map {
+canvas {
     display: block;
-    background: #fff;
     margin: 30px auto 0px;
 }
 
-#player, #enemy {
+#player, #enemy, #stats {
     display: block;
     margin: -500px auto 0px;
 }
