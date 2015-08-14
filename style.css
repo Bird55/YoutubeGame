@@ -1,12 +1,12 @@
 body {
     background: #333;
+    cursor: pointer;
 }
 
 #gameName {
     color: #fff;
-    font-family: Courier, serif;
-    font-weight: bold;
-    font-size: 24px;
+    font-family: "HelveticaNeue-UltraLoght";
+    font-size: 27px;
     text-align: center;
 }
 
